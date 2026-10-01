@@ -10,6 +10,58 @@ const ICON_MAP = {
   book:      BookOpen,
 };
 
+function AboutCard({ card, icon: Icon }) {
+  const cardRef = useRef(null);
+  const [spotlight, setSpotlight] = useState({ x: 0, y: 0, opacity: 0 });
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setSpotlight({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      opacity: 1,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setSpotlight((prev) => ({ ...prev, opacity: 0 }));
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="card-glow group relative p-4 sm:p-5 overflow-hidden"
+    >
+      {/* Dynamic Cursor Spotlight Radial Glow */}
+      <div
+        className="pointer-events-none absolute -inset-px rounded-[14px] transition-opacity duration-300"
+        style={{
+          opacity: spotlight.opacity,
+          background: `radial-gradient(220px circle at ${spotlight.x}px ${spotlight.y}px, rgba(67,97,238,0.18), transparent 70%)`,
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Content */}
+      <div className="relative z-10">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-colors duration-200 group-hover:bg-accent/20"
+          style={{ background: 'var(--accent-dim)' }}
+        >
+          <Icon size={16} className="text-accent" />
+        </div>
+        <h3 className="font-semibold text-sm text-[--text] mb-1.5">
+          {card.title}
+        </h3>
+        <p className="text-[--muted] text-xs leading-relaxed">{card.desc}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function About() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.25 });
@@ -80,21 +132,11 @@ export default function About() {
             {about.cards.map((card) => {
               const Icon = ICON_MAP[card.icon] || Target;
               return (
-                <div
+                <AboutCard
                   key={card.title}
-                  className="card-glow group p-4 sm:p-5"
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-colors duration-200 group-hover:bg-accent/20"
-                    style={{ background: 'var(--accent-dim)' }}
-                  >
-                    <Icon size={16} className="text-accent" />
-                  </div>
-                  <h3 className="font-semibold text-sm text-[--text] mb-1.5">
-                    {card.title}
-                  </h3>
-                  <p className="text-[--muted] text-xs leading-relaxed">{card.desc}</p>
-                </div>
+                  card={card}
+                  icon={Icon}
+                />
               );
             })}
           </motion.div>

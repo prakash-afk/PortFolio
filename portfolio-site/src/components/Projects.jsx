@@ -3,16 +3,22 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, LayoutGroup, useInView } from 'framer-motion';
 import { ExternalLink, Github, X, ChevronLeft, ChevronRight, Maximize2, ArrowRight } from 'lucide-react';
 import { PORTFOLIO } from '../content';
+import { sound } from '../utils/sound';
 
 // ─── Project Card Component ─────────────────────────────────
 function ProjectCard({ project, idx, inView, onOpen, isReducedMotion, deviceType }) {
   const cardRef = useRef(null);
   const imgRef = useRef(null);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [inViewSettled, setInViewSettled] = useState(false);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [spotlight, setSpotlight] = useState({ x: 0, y: 0, opacity: 0 });
+  const [isHovered, setIsHovered] = useState(false);
 
   const title = project.name || project.title;
   const shortDescription = project.shortDescription || project.desc || '';
   const tags = project.tags || project.tech || [];
+  const metrics = project.metrics || [];
   const thumbnail = project.thumbnail || '/images/healthcare-rag.png';
 
   // Stagger sequence:
@@ -72,6 +78,29 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion, deviceType
     };
   }, [idx, deviceType, isReducedMotion]);
 
+  // 3D Tilt & Spotlight mouse handler for desktop
+  const handleMouseMove = (e) => {
+    if (deviceType !== 'desktop' || isReducedMotion) return;
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const xPct = (x / rect.width - 0.5) * 2;
+    const yPct = (y / rect.height - 0.5) * 2;
+
+    setTilt({ x: -yPct * 5.5, y: xPct * 5.5 });
+    setSpotlight({ x, y, opacity: 1 });
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 });
+    setSpotlight((prev) => ({ ...prev, opacity: 0 }));
+    setIsHovered(false);
+  };
+
   return (
     <motion.article
       ref={cardRef}
@@ -84,6 +113,8 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion, deviceType
           onOpen(idx, cardRef.current);
         }
       }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       initial={cardInitial}
       animate={
         inView
@@ -104,20 +135,46 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion, deviceType
         ease: [0.22, 1, 0.36, 1],
       }}
       onAnimationComplete={() => {
-        // Clear inline transforms & filters once settled so CSS hover operates cleanly
+        setInViewSettled(true);
         if (cardRef.current) {
-          cardRef.current.style.transform = '';
           cardRef.current.style.filter = '';
         }
       }}
-      className="group relative flex flex-col w-full h-full text-left rounded-2xl border border-white/[0.08] overflow-hidden cursor-pointer outline-none transition-all duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-[0_14px_32px_-10px_rgba(0,0,0,0.7),0_0_24px_rgba(67,97,238,0.22)] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+      className="group relative flex flex-col w-full h-full text-left rounded-2xl border border-white/[0.08] overflow-hidden cursor-pointer outline-none transition-all duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-accent/40 hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.75),0_0_28px_rgba(67,97,238,0.25)] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
       style={{
         background: 'linear-gradient(160deg, rgba(13,27,53,0.92) 0%, rgba(8,15,34,0.95) 100%)',
         backdropFilter: 'blur(12px)',
+        transform:
+          inViewSettled && isHovered && deviceType === 'desktop'
+            ? `perspective(1000px) rotateX(${tilt.x.toFixed(2)}deg) rotateY(${tilt.y.toFixed(2)}deg) translateY(-6px)`
+            : undefined,
+        transition: isHovered
+          ? 'transform 0.1s ease-out, border-color 0.25s, box-shadow 0.25s'
+          : 'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s',
       }}
       aria-haspopup="dialog"
       aria-label={`View details for ${title}`}
     >
+      {/* ── Dynamic cursor spotlight radial glow ── */}
+      <div
+        className="pointer-events-none absolute -inset-px rounded-2xl transition-opacity duration-300 z-10"
+        style={{
+          opacity: spotlight.opacity,
+          background: `radial-gradient(350px circle at ${spotlight.x}px ${spotlight.y}px, rgba(67,97,238,0.18), transparent 75%)`,
+        }}
+        aria-hidden="true"
+      />
+      {/* ── Border spotlight glow ── */}
+      <div
+        className="pointer-events-none absolute -inset-px rounded-2xl transition-opacity duration-300 z-10 border border-accent/40"
+        style={{
+          opacity: spotlight.opacity,
+          maskImage: `radial-gradient(240px circle at ${spotlight.x}px ${spotlight.y}px, black, transparent 80%)`,
+          WebkitMaskImage: `radial-gradient(240px circle at ${spotlight.x}px ${spotlight.y}px, black, transparent 80%)`,
+        }}
+        aria-hidden="true"
+      />
+
       {/* Thumbnail with subtle entrance reveal and hover zoom */}
       <div className="relative w-full h-[210px] sm:h-[230px] overflow-hidden bg-[#070b14] border-b border-white/[0.06]">
         <motion.img
@@ -147,10 +204,25 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion, deviceType
       </div>
 
       {/* Card Body */}
-      <div className="flex flex-col flex-1 p-5 sm:p-6 gap-3.5">
+      <div className="flex flex-col flex-1 p-5 sm:p-6 gap-3.5 relative z-20">
         <h3 className="font-bold text-[--text] text-lg sm:text-xl leading-snug group-hover:text-accent transition-colors duration-200">
           {title}
         </h3>
+
+        {/* Quantifiable Recruiter Metric Badges */}
+        {metrics.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-0.5" aria-label="Key project metrics">
+            {metrics.map((metric, mIdx) => (
+              <span
+                key={mIdx}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 shadow-[0_0_12px_rgba(16,185,129,0.12)]"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse" />
+                {metric}
+              </span>
+            ))}
+          </div>
+        )}
 
         <p className="text-[--muted] text-sm leading-relaxed line-clamp-2">
           {shortDescription}
@@ -200,10 +272,12 @@ function ProjectModal({
   const project = projects[currentIndex] || projects[0];
 
   const handlePrev = useCallback(() => {
+    sound.playSwitch();
     onNavigate((currentIndex - 1 + projects.length) % projects.length);
   }, [currentIndex, onNavigate, projects.length]);
 
   const handleNext = useCallback(() => {
+    sound.playSwitch();
     onNavigate((currentIndex + 1) % projects.length);
   }, [currentIndex, onNavigate, projects.length]);
 
@@ -630,11 +704,13 @@ export default function Projects() {
   const projects = PORTFOLIO.projects;
 
   const handleOpenModal = (idx, triggerEl) => {
+    sound.playModalOpen();
     lastTriggerRef.current = triggerEl;
     setSelectedIndex(idx);
   };
 
   const handleCloseModal = () => {
+    sound.playModalClose();
     setSelectedIndex(null);
     // Return focus to the trigger card button
     setTimeout(() => {
