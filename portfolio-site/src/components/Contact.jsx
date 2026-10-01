@@ -240,7 +240,7 @@ export default function Contact() {
                 rows={5}
                 value={form.message}
                 onChange={onChange}
-                placeholder="Your message (10–1000 characters)"
+                placeholder="Your message (10 to 1000 characters)"
                 minLength={10}
                 maxLength={1000}
                 className="form-field resize-y"

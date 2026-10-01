@@ -7,17 +7,46 @@ export const PORTFOLIO = {
   // ── Identity ─────────────────────────────────────────
   name:     'Prakash Kumar',
   initials: 'PK',
-  badge:    'CS Student | AI & ML Enthusiast',
-  headline: 'Aspiring AI/ML Engineer',
+  badge:    'AI/ML · GenAI · Backend',
+  headline: 'AI/ML Engineer | GenAI & Backend',
   heroDesc:
-    'I build intelligent systems using AI/ML, GenAI and backend technologies. Focused on solving practical problems through technology.',
+    'I build end-to-end AI systems combining GenAI, RAG, machine learning, and backend engineering from data and retrieval pipelines to production APIs and usable applications.',
+  resume:   '/resume.pdf',
 
   // ── Floating hero chips ───────────────────────────────
   chips: [
-    { lines: ['GenAI', 'RAG', 'LangChain'],         iconType: 'brain',   floatClass: 'float-1', pos: 'top-[6%]  left-[3%]' },
-    { lines: ['AI/ML', 'LLMs', 'Pinecone'],          iconType: 'cpu',     floatClass: 'float-2', pos: 'top-[6%]  right-[3%]' },
-    { lines: ['FastAPI', 'Docker', 'Python'],         iconType: 'cloud',   floatClass: 'float-3', pos: 'bottom-[20%] left-[0%]' },
-    { lines: ['Building', 'AI Systems', 'For Impact'],iconType: 'bar',     floatClass: 'float-4', pos: 'bottom-[20%] right-[0%]' },
+    {
+      title: 'GenAI',
+      items: ['RAG', 'LLMs', 'LangChain'],
+      lines: ['GenAI', 'RAG', 'LLMs', 'LangChain'],
+      iconType: 'brain',
+      floatClass: 'float-1',
+      pos: 'top-[6%]  left-[3%]',
+    },
+    {
+      title: 'AI/ML',
+      items: ['XGBoost', 'Scikit-learn', 'NLP'],
+      lines: ['AI/ML', 'XGBoost', 'Scikit-learn', 'NLP'],
+      iconType: 'cpu',
+      floatClass: 'float-2',
+      pos: 'top-[6%]  right-[3%]',
+    },
+    {
+      title: 'Backend',
+      items: ['FastAPI', 'REST APIs', 'Docker'],
+      lines: ['Backend', 'FastAPI', 'REST APIs', 'Docker'],
+      iconType: 'cloud',
+      floatClass: 'float-3',
+      pos: 'bottom-[20%] left-[0%]',
+    },
+    {
+      title: 'Data',
+      items: ['Pinecone', 'MongoDB', 'MySQL'],
+      lines: ['Data', 'Pinecone', 'MongoDB', 'MySQL'],
+      iconType: 'layers',
+      floatClass: 'float-4',
+      pos: 'bottom-[20%] right-[0%]',
+    },
   ],
 
   // ── Social ────────────────────────────────────────────
@@ -30,29 +59,30 @@ export const PORTFOLIO = {
   // ── About cards ──────────────────────────────────────
   about: {
     sectionLabel: 'ABOUT ME',
-    heading:      'Turning Ideas into Real-World Solutions',
+    heading:      'Building AI Systems Beyond the Model',
     body:
-      "I'm a Computer Science Engineering student at Sikkim Manipal Institute of Technology, specializing in AI & ML. I enjoy building practical AI applications, working with real datasets, and turning ideas into useful solutions.",
+      "I'm a Computer Science Engineering student specializing in AI & ML, focused on building practical AI systems using GenAI, RAG, machine learning, and backend engineering. I enjoy taking ideas from data and retrieval pipelines to production APIs and usable applications.",
+    buttonText:   'Explore My Work',
     cards: [
       {
         icon:  'target',
         title: 'My Goal',
-        desc:  'To become an AI/ML engineer and build impactful products.',
+        desc:  'Build reliable AI/ML systems that solve practical problems and move beyond experimentation into real applications.',
       },
       {
         icon:  'lightbulb',
         title: 'What I Do',
-        desc:  'Develop AI/ML projects, explore GenAI and work on real-world problems.',
+        desc:  'Build ML and GenAI applications using RAG, LLMs, vector search, FastAPI, and modern backend technologies.',
       },
       {
         icon:  'focus',
         title: 'Current Focus',
-        desc:  'GenAI, RAG, LangChain, FastAPI and building AI systems.',
+        desc:  'GenAI, RAG, LLM applications, vector databases, FastAPI, and AI system design.',
       },
       {
         icon:  'book',
         title: 'Beyond Tech',
-        desc:  'I enjoy learning, solving problems, and continuously improving my skills.',
+        desc:  'I enjoy solving engineering problems, understanding systems deeply, and continuously improving through hands-on projects.',
       },
     ],
   },
@@ -81,13 +111,13 @@ export const PORTFOLIO = {
       id: 1,
       name: 'Intelligent Loan Approval System',
       title: 'Intelligent Loan Approval System',
-      tags: ['Machine Learning', 'Full-Stack'],
-      shortDescription: 'Automated credit-risk assessment using XGBoost — 0.984 ROC-AUC on 50K+ records.',
-      desc: 'Automated credit-risk assessment using XGBoost — 0.984 ROC-AUC on 50K+ records.',
+      tags: ['Machine Learning', 'Backend', 'XGBoost'],
+      shortDescription: 'Automated credit-risk assessment using XGBoost with 0.984 ROC-AUC on 50K+ records.',
+      desc: 'Automated credit-risk assessment using XGBoost with 0.984 ROC-AUC on 50K+ records.',
       tech: ['Python', 'XGBoost', 'Pandas', 'FastAPI', 'React.js', 'Docker'],
       technology: ['Python', 'XGBoost', 'Pandas', 'FastAPI', 'React.js', 'Docker'],
       problem: 'Manual loan decisioning is slow and inconsistent across large applicant datasets.',
-      approach: 'Evaluated 5+ ML models, engineered financial risk features, containerized full pipeline with Docker.',
+      approach: 'Evaluated 5+ ML models, engineered financial risk features, and containerized the full pipeline with Docker.',
       result: '0.984 ROC-AUC and 92.6% accuracy on 50K+ records with real-time scoring via FastAPI.',
       githubUrl: 'https://github.com/prakash-afk/Loan-Prediction-Model',
       github: 'https://github.com/prakash-afk/Loan-Prediction-Model',
@@ -106,7 +136,7 @@ export const PORTFOLIO = {
       technology: ['Python', 'FastAPI', 'LangChain', 'Pinecone', 'Gemini', 'MongoDB'],
       problem: 'Need for an accurate, document-grounded healthcare assistant with strict access controls.',
       approach: 'Role-aware RAG pipeline over PDF corpora using recursive chunking and Pinecone vector retrieval.',
-      result: 'Reduced quota-related upload failures; implemented RBAC restricting uploads to authorized users only.',
+      result: 'Reduced quota-related upload failures and implemented RBAC restricting uploads to authorized users.',
       githubUrl: 'https://github.com/prakash-afk/Healthcare-RAG-Chatbot',
       github: 'https://github.com/prakash-afk/Healthcare-RAG-Chatbot',
       liveUrl: '',
@@ -135,12 +165,12 @@ export const PORTFOLIO = {
       id: 4,
       name: 'Full-Stack Expense Tracker',
       title: 'Full-Stack Expense Tracker',
-      tags: ['Full-Stack', 'Backend'],
-      shortDescription: 'Personal finance tracker with JWT auth, real-time dashboards and budget-threshold alerts.',
-      desc: 'Personal finance tracker with JWT auth, real-time dashboards and budget-threshold alerts.',
+      tags: ['Backend', 'REST API', 'MongoDB'],
+      shortDescription: 'Personal finance tracker with JWT authentication, REST APIs, real-time dashboards, and budget-threshold alerts.',
+      desc: 'Personal finance tracker with JWT authentication, REST APIs, real-time dashboards, and budget-threshold alerts.',
       tech: ['React', 'Node.js', 'Express', 'MongoDB', 'Tailwind CSS'],
       technology: ['React', 'Node.js', 'Express', 'MongoDB', 'Tailwind CSS'],
-      problem: 'No alert system that fires before overspending — only after it happens.',
+      problem: 'Budget alerts usually fire only after overspending rather than before it happens.',
       approach: 'Tiered budget-alert system with per-user REST APIs and JWT authentication.',
       result: 'Mobile-friendly UI with real-time dashboards and predictive budget threshold alerts.',
       githubUrl: 'https://github.com/prakash-afk/Expense-Tracker',
@@ -200,7 +230,7 @@ export const PORTFOLIO = {
     {
       degree:      'B.Tech in Computer Science & Engineering (AI & ML)',
       institution: 'Sikkim Manipal Institute of Technology (SMIT)',
-      year:        '2023 – Present',
+      year:        '2023 – 2027',
       cgpa:        'CGPA: 8.02 / 10',
       logo:        '/smit-logo.png',
     },
@@ -209,7 +239,7 @@ export const PORTFOLIO = {
   // ── Contact ───────────────────────────────────────────
   contact: {
     heading: "Let's Connect",
-    desc:    'Open to internships, projects and conversations about AI. Send a message and I\'ll reply soon.',
+    desc:    "I'm open to AI/ML internships, engineering opportunities, and discussions about GenAI, RAG, and backend systems. Feel free to reach out.",
     email:   'pr1624300@gmail.com',
   },
 };

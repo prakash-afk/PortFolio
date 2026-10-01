@@ -553,7 +553,7 @@ export default function Projects() {
               Featured Projects
             </h2>
             <p className="text-[--muted] text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
-              Selected AI/ML, GenAI and full-stack projects I've built.
+              Selected AI/ML, GenAI, and backend systems I've built.
             </p>
           </div>
 

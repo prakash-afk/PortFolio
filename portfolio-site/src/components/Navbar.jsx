@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Github, Linkedin, Mail, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { PORTFOLIO } from '../content';
 import { ANIM } from '../utils/animations';
 
@@ -88,7 +88,7 @@ export default function Navbar() {
         <a
           href="#hero"
           className="flex items-center gap-2.5 group"
-          aria-label="Prakash Kumar — Back to top"
+          aria-label="Prakash Kumar: Back to top"
         >
           <div className="w-9 h-9 rounded-xl overflow-hidden border border-white/[0.12] transition-all duration-300 group-hover:border-accent group-hover:shadow-glow bg-[#0d1b35] flex-shrink-0 flex items-center justify-center">
             <img
@@ -103,7 +103,7 @@ export default function Navbar() {
         </a>
 
         {/* Desktop nav links */}
-        <ul className="hidden md:flex items-center gap-4 lg:gap-7" role="list">
+        <ul className="hidden md:flex items-center gap-7" role="list">
           {NAV_LINKS.map(link => {
             const active = activeSection === link.toLowerCase();
             return (

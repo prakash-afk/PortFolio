@@ -2,7 +2,7 @@ import { portfolio } from './content.js';
 import emailjs from '@emailjs/browser';
 
 // ─────────────────────────────────────────────────────────
-//  EmailJS — public key is intentionally visible in the
+//  EmailJS: public key is intentionally visible in the
 //  browser bundle. That is normal for EmailJS.
 //  Restrict allowed domains in your EmailJS dashboard:
 //  https://dashboard.emailjs.com/admin/account
@@ -709,7 +709,7 @@ function setupContactForm() {
         message:    message,
       });
 
-      setStatus('success', "Message sent — I'll get back to you soon.");
+      setStatus('success', "Message sent! I'll get back to you soon.");
       form.reset();     // Only reset on success
     } catch (err) {
       console.error('EmailJS error:', err);

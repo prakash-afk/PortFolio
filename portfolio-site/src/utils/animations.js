@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────
-//  ANIMATION SETTINGS — tweak all speeds and delays here
+//  ANIMATION SETTINGS: tweak all speeds and delays here
 // ─────────────────────────────────────────────────────────
 
 export const ANIM = {

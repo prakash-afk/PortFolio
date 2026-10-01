@@ -1209,7 +1209,7 @@ body.modal-open {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESPONSIVE — 768px (tablet/mobile)
+   RESPONSIVE: 768px (tablet/mobile)
 ═══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .section { padding: 5rem 0; }
@@ -1249,7 +1249,7 @@ body.modal-open {
 }
 
 /* ═══════════════════════════════════════════════════════
-   RESPONSIVE — 480px (small phone)
+   RESPONSIVE: 480px (small phone)
 ═══════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
   .hero { padding-top: calc(var(--nav-h) + 3.5rem); }

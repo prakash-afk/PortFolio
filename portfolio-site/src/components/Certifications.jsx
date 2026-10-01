@@ -1,26 +1,36 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { ArrowUpRight, X, Award, ZoomIn } from 'lucide-react';
+import { ArrowUpRight, X, ZoomIn } from 'lucide-react';
 import { gsap } from 'gsap';
 import { PORTFOLIO } from '../content';
-import { ANIM } from '../utils/animations';
 
 // ─── Certificate Card Component ─────────────────────────────
-function CertificateCard({ cert, onSelect, isDuplicate = false }) {
+function CertificateCard({ cert, onSelect, isDuplicate = false, hasDraggedRef }) {
+  const handleClick = (e) => {
+    if (hasDraggedRef && hasDraggedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onSelect(cert);
+  };
+
   return (
     <div
       role="button"
       tabIndex={isDuplicate ? -1 : 0}
       aria-hidden={isDuplicate ? 'true' : undefined}
-      onClick={() => onSelect(cert)}
+      onClick={handleClick}
       onKeyDown={(e) => {
         if (!isDuplicate && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
           onSelect(cert);
         }
       }}
-      className="group relative w-[290px] sm:w-[330px] md:w-[360px] flex-shrink-0 mx-2.5 sm:mx-3 rounded-2xl border border-white/[0.08] overflow-hidden cursor-pointer outline-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-2 hover:border-accent/40 hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.7),0_0_28px_rgba(67,97,238,0.28)] focus-visible:ring-2 focus-visible:ring-accent flex flex-col"
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
+      className="group relative w-[290px] sm:w-[330px] md:w-[360px] flex-shrink-0 mx-2.5 sm:mx-3 rounded-2xl border border-white/[0.08] overflow-hidden cursor-pointer outline-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-2 hover:border-accent/40 hover:shadow-[0_16px_36px_-10px_rgba(0,0,0,0.7),0_0_28px_rgba(67,97,238,0.28)] focus-visible:ring-2 focus-visible:ring-accent flex flex-col select-none"
       style={{
         background: 'linear-gradient(160deg, rgba(13,27,53,0.92) 0%, rgba(8,15,34,0.95) 100%)',
         backdropFilter: 'blur(12px)',
@@ -28,12 +38,14 @@ function CertificateCard({ cert, onSelect, isDuplicate = false }) {
       aria-label={isDuplicate ? undefined : `View ${cert.title} certificate`}
     >
       {/* Thumbnail area with fixed aspect ratio */}
-      <div className="relative w-full aspect-[16/10.5] overflow-hidden bg-[#050b18]/90 border-b border-white/[0.06] p-2 flex items-center justify-center">
+      <div className="relative w-full aspect-[16/10.5] overflow-hidden bg-[#050b18]/90 border-b border-white/[0.06] p-2 flex items-center justify-center pointer-events-none">
         <img
           src={cert.image}
           alt={`${cert.title} preview`}
           loading="lazy"
-          className="w-full h-full object-contain rounded-lg transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
+          className="w-full h-full object-contain rounded-lg transition-transform duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] pointer-events-none"
         />
 
         {/* Badge */}
@@ -53,7 +65,7 @@ function CertificateCard({ cert, onSelect, isDuplicate = false }) {
       </div>
 
       {/* Card Body */}
-      <div className="p-5 flex flex-col flex-1 justify-between gap-3.5">
+      <div className="p-5 flex flex-col flex-1 justify-between gap-3.5 pointer-events-none">
         <div>
           {/* Issuer and Year */}
           <div className="flex items-center justify-between text-xs mb-2">
@@ -176,7 +188,7 @@ function CertificateModal({ cert, onClose, isReducedMotion }) {
           <img
             src={cert.image}
             alt={cert.title}
-            className="w-auto h-auto max-w-[92vw] max-h-[74vh] sm:max-h-[78vh] object-contain block"
+            className="w-auto h-auto max-w-[92vw] max-h-[74vh] sm:max-h-[78vh] object-contain block select-none"
           />
         </div>
 
@@ -200,14 +212,28 @@ function CertificateModal({ cert, onClose, isReducedMotion }) {
 export default function Certifications() {
   const [selectedCert, setSelectedCert] = useState(null);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
+  const [widthSet, setWidthSet] = useState(0);
   const lastTriggerRef = useRef(null);
 
   const sectionRef = useRef(null);
+  const containerRef = useRef(null);
   const trackRef = useRef(null);
-  const tweenRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
 
   const certificates = PORTFOLIO.certificates || [];
+
+  // Ref states for continuous shared position & interaction control
+  const xPos = useRef(0);
+  const isAutoScrolling = useRef(true);
+  const isDragging = useRef(false);
+  const hasDragged = useRef(false);
+  const isHovered = useRef(false);
+  const pointerStartX = useRef(0);
+  const dragStartPos = useRef(0);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchDirection = useRef(null);
+  const resumeTimer = useRef(null);
 
   // Check prefers-reduced-motion
   useEffect(() => {
@@ -219,28 +245,265 @@ export default function Certifications() {
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  // GSAP seamless loop carousel (45 seconds per complete cycle)
-  useEffect(() => {
-    if (isReducedMotion || !trackRef.current || certificates.length === 0) return;
+  // Measure exact width of 1 complete set of certificates
+  const measureSetWidth = useCallback(() => {
+    if (!trackRef.current || certificates.length === 0) return;
+    const cards = trackRef.current.children;
+    if (cards && cards.length >= certificates.length * 2) {
+      const card0 = cards[0];
+      const cardN = cards[certificates.length];
+      if (card0 && cardN) {
+        const width = cardN.offsetLeft - card0.offsetLeft;
+        if (width > 0) {
+          setWidthSet(width);
+        }
+      }
+    }
+  }, [certificates.length]);
 
-    tweenRef.current = gsap.to(trackRef.current, {
-      xPercent: -50,
-      duration: 45,
-      ease: 'none',
-      repeat: -1,
-    });
+  // Apply position & seamless infinite wrapping
+  const applyPosition = useCallback(() => {
+    if (!trackRef.current || widthSet <= 0) return;
+
+    let currentX = xPos.current;
+    while (currentX < -widthSet) {
+      currentX += widthSet;
+      xPos.current += widthSet;
+    }
+    while (currentX > 0) {
+      currentX -= widthSet;
+      xPos.current -= widthSet;
+    }
+
+    gsap.set(trackRef.current, { x: currentX });
+  }, [widthSet]);
+
+  // Measure width on mount & window resize
+  useEffect(() => {
+    measureSetWidth();
+
+    const handleResize = () => {
+      measureSetWidth();
+      applyPosition();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    let observer;
+    if (typeof ResizeObserver !== 'undefined' && trackRef.current) {
+      observer = new ResizeObserver(handleResize);
+      observer.observe(trackRef.current);
+    }
 
     return () => {
-      tweenRef.current?.kill();
+      window.removeEventListener('resize', handleResize);
+      observer?.disconnect();
     };
-  }, [isReducedMotion, certificates.length]);
+  }, [certificates.length, measureSetWidth, applyPosition]);
 
-  const handlePause = () => {
-    tweenRef.current?.pause();
+  // Main GSAP Ticker animation loop (45 seconds per complete cycle of widthSet)
+  useEffect(() => {
+    if (isReducedMotion || certificates.length === 0) return;
+
+    let lastTime = performance.now();
+
+    const updateLoop = (time) => {
+      const delta = (time - lastTime) / 1000;
+      lastTime = time;
+
+      if (
+        widthSet > 0 &&
+        isAutoScrolling.current &&
+        !isDragging.current &&
+        !isHovered.current
+      ) {
+        // Auto-scroll speed: 45 seconds per cycle of widthSet
+        const speed = widthSet / 45;
+        xPos.current -= speed * delta;
+        applyPosition();
+      }
+    };
+
+    gsap.ticker.add(updateLoop);
+
+    return () => {
+      gsap.ticker.remove(updateLoop);
+    };
+  }, [isReducedMotion, certificates.length, widthSet, applyPosition]);
+
+  // Desktop Mouse Click & Drag handlers
+  const handleMouseDown = (e) => {
+    if (isReducedMotion) return;
+    if (e.button !== undefined && e.button !== 0) return;
+
+    isDragging.current = true;
+    hasDragged.current = false;
+    pointerStartX.current = e.clientX;
+    dragStartPos.current = xPos.current;
+
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    isAutoScrolling.current = false;
+
+    if (containerRef.current) {
+      containerRef.current.style.cursor = 'grabbing';
+    }
   };
 
-  const handleResume = () => {
-    tweenRef.current?.play();
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (!isDragging.current) return;
+
+      const deltaX = e.clientX - pointerStartX.current;
+      if (Math.abs(deltaX) > 5) {
+        hasDragged.current = true;
+      }
+
+      xPos.current = dragStartPos.current + deltaX;
+      applyPosition();
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grab';
+      }
+
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+      resumeTimer.current = setTimeout(() => {
+        isAutoScrolling.current = true;
+      }, 1500);
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [widthSet, applyPosition]);
+
+  // Mobile Touch Swipe & Trackpad / Mouse Wheel event handlers
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || isReducedMotion) return;
+
+    // Mobile Touch handlers with horizontal consumption & vertical pass-through
+    const handleTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
+      dragStartPos.current = xPos.current;
+      isDragging.current = true;
+      hasDragged.current = false;
+      touchDirection.current = null;
+
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+      isAutoScrolling.current = false;
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isDragging.current || e.touches.length !== 1) return;
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = touch.clientY - touchStartY.current;
+
+      if (!touchDirection.current) {
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+          if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+            touchDirection.current = 'horizontal';
+          } else {
+            touchDirection.current = 'vertical';
+          }
+        }
+      }
+
+      if (touchDirection.current === 'horizontal') {
+        if (e.cancelable) e.preventDefault();
+        if (Math.abs(deltaX) > 5) {
+          hasDragged.current = true;
+        }
+        xPos.current = dragStartPos.current + deltaX;
+        applyPosition();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+      touchDirection.current = null;
+
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+      resumeTimer.current = setTimeout(() => {
+        isAutoScrolling.current = true;
+      }, 1500);
+    };
+
+    // Trackpad horizontal swipe & Shift + mouse wheel
+    const handleWheel = (e) => {
+      const deltaX = e.deltaX !== 0 ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+
+      if (Math.abs(deltaX) > Math.abs(e.deltaY) || e.shiftKey || e.deltaX !== 0) {
+        if (e.cancelable) e.preventDefault();
+
+        isAutoScrolling.current = false;
+        xPos.current -= deltaX;
+        applyPosition();
+
+        if (resumeTimer.current) clearTimeout(resumeTimer.current);
+        resumeTimer.current = setTimeout(() => {
+          isAutoScrolling.current = true;
+        }, 1500);
+      }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    container.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchcancel', handleTouchEnd);
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [isReducedMotion, widthSet, applyPosition]);
+
+  // Hover pause & resume
+  const handleMouseEnter = () => {
+    if (isDragging.current) return;
+    isHovered.current = true;
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+  };
+
+  const handleMouseLeave = () => {
+    isHovered.current = false;
+    if (!isDragging.current) {
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+      resumeTimer.current = setTimeout(() => {
+        isAutoScrolling.current = true;
+      }, 1500);
+    }
+  };
+
+  const handleFocusCapture = () => {
+    isAutoScrolling.current = false;
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+  };
+
+  const handleBlurCapture = () => {
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => {
+      isAutoScrolling.current = true;
+    }, 1500);
   };
 
   const handleOpenModal = (cert) => {
@@ -256,8 +519,12 @@ export default function Certifications() {
     }, 50);
   };
 
-  // Duplicated list for seamless infinite loop
-  const carouselItems = [...certificates, ...certificates];
+  // 3 replicated sets of certificates for seamless infinite looping in both directions
+  const carouselItems = [
+    ...certificates,
+    ...certificates,
+    ...certificates,
+  ];
 
   return (
     <section
@@ -304,23 +571,26 @@ export default function Certifications() {
                 key={cert.id}
                 cert={cert}
                 onSelect={handleOpenModal}
+                hasDraggedRef={hasDragged}
               />
             ))}
           </div>
         </div>
       ) : (
-        // Continuous smooth infinite horizontal carousel
+        // Continuous smooth infinite horizontal carousel with mouse drag & touch swipe
         <div
-          className="relative w-full overflow-hidden marquee-fade py-4"
-          onMouseEnter={handlePause}
-          onMouseLeave={handleResume}
-          onFocusCapture={handlePause}
-          onBlurCapture={handleResume}
+          ref={containerRef}
+          className="relative w-full overflow-hidden marquee-fade py-4 select-none cursor-grab active:cursor-grabbing touch-pan-y"
+          onMouseDown={handleMouseDown}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onFocusCapture={handleFocusCapture}
+          onBlurCapture={handleBlurCapture}
         >
           <div
             ref={trackRef}
-            className="flex items-stretch"
-            style={{ width: 'max-content' }}
+            className="flex items-stretch select-none"
+            style={{ width: 'max-content', willChange: 'transform' }}
           >
             {carouselItems.map((cert, index) => {
               const isDuplicate = index >= certificates.length;
@@ -330,6 +600,7 @@ export default function Certifications() {
                   cert={cert}
                   isDuplicate={isDuplicate}
                   onSelect={handleOpenModal}
+                  hasDraggedRef={hasDragged}
                 />
               );
             })}
@@ -350,3 +621,4 @@ export default function Certifications() {
     </section>
   );
 }
+
