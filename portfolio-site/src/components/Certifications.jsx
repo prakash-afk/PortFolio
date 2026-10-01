@@ -212,7 +212,7 @@ function CertificateModal({ cert, onClose, isReducedMotion }) {
 export default function Certifications() {
   const [selectedCert, setSelectedCert] = useState(null);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
-  const [widthSet, setWidthSet] = useState(0);
+  const widthSetRef = useRef(0);
   const lastTriggerRef = useRef(null);
 
   const sectionRef = useRef(null);
@@ -245,82 +245,82 @@ export default function Certifications() {
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  // Measure exact width of 1 complete set of certificates
-  const measureSetWidth = useCallback(() => {
-    if (!trackRef.current || certificates.length === 0) return;
-    const cards = trackRef.current.children;
-    if (cards && cards.length >= certificates.length * 2) {
-      const card0 = cards[0];
-      const cardN = cards[certificates.length];
-      if (card0 && cardN) {
-        const width = cardN.offsetLeft - card0.offsetLeft;
-        if (width > 0) {
-          setWidthSet(width);
-        }
-      }
+  // Helper function to wrap position seamlessly within [-width, 0]
+  const wrapPosition = (x, width) => {
+    if (width <= 0) return x;
+    while (x <= -width) {
+      x += width;
     }
-  }, [certificates.length]);
+    while (x > 0) {
+      x -= width;
+    }
+    return x;
+  };
 
-  // Apply position & seamless infinite wrapping
+  // Apply current x position with wrapping
   const applyPosition = useCallback(() => {
-    if (!trackRef.current || widthSet <= 0) return;
-
-    let currentX = xPos.current;
-    while (currentX < -widthSet) {
-      currentX += widthSet;
-      xPos.current += widthSet;
+    if (!trackRef.current) return;
+    let width = widthSetRef.current;
+    if (width <= 0 && trackRef.current.scrollWidth > 0) {
+      width = trackRef.current.scrollWidth / 3;
+      widthSetRef.current = width;
     }
-    while (currentX > 0) {
-      currentX -= widthSet;
-      xPos.current -= widthSet;
-    }
+    if (width <= 0) return;
 
-    gsap.set(trackRef.current, { x: currentX });
-  }, [widthSet]);
+    xPos.current = wrapPosition(xPos.current, width);
+    gsap.set(trackRef.current, { x: xPos.current, force3D: true });
+  }, []);
 
-  // Measure width on mount & window resize
+  // Measure exact width of 1 complete set on mount & resize
   useEffect(() => {
-    measureSetWidth();
-
-    const handleResize = () => {
-      measureSetWidth();
-      applyPosition();
+    const measureWidth = () => {
+      if (trackRef.current && trackRef.current.scrollWidth > 0) {
+        widthSetRef.current = trackRef.current.scrollWidth / 3;
+        applyPosition();
+      }
     };
 
-    window.addEventListener('resize', handleResize);
+    measureWidth();
+    const timer = setTimeout(measureWidth, 300);
 
-    let observer;
-    if (typeof ResizeObserver !== 'undefined' && trackRef.current) {
-      observer = new ResizeObserver(handleResize);
-      observer.observe(trackRef.current);
-    }
-
+    window.addEventListener('resize', measureWidth);
     return () => {
-      window.removeEventListener('resize', handleResize);
-      observer?.disconnect();
+      clearTimeout(timer);
+      window.removeEventListener('resize', measureWidth);
     };
-  }, [certificates.length, measureSetWidth, applyPosition]);
+  }, [certificates.length, applyPosition]);
 
-  // Main GSAP Ticker animation loop (45 seconds per complete cycle of widthSet)
+  // Main GSAP Ticker animation loop (continuous smooth marquee matching Tech Stack)
   useEffect(() => {
     if (isReducedMotion || certificates.length === 0) return;
 
     let lastTime = performance.now();
 
-    const updateLoop = (time) => {
-      const delta = (time - lastTime) / 1000;
-      lastTime = time;
+    const updateLoop = () => {
+      const now = performance.now();
+      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
 
       if (
-        widthSet > 0 &&
         isAutoScrolling.current &&
         !isDragging.current &&
         !isHovered.current
       ) {
-        // Auto-scroll speed: 45 seconds per cycle of widthSet
-        const speed = widthSet / 45;
-        xPos.current -= speed * delta;
-        applyPosition();
+        let width = widthSetRef.current;
+        if (width <= 0 && trackRef.current && trackRef.current.scrollWidth > 0) {
+          width = trackRef.current.scrollWidth / 3;
+          widthSetRef.current = width;
+        }
+
+        if (width > 0) {
+          // Speed: ~40px per second, matching the smooth tech stack marquee
+          const speed = 40;
+          xPos.current -= speed * delta;
+          xPos.current = wrapPosition(xPos.current, width);
+          if (trackRef.current) {
+            gsap.set(trackRef.current, { x: xPos.current, force3D: true });
+          }
+        }
       }
     };
 
@@ -329,9 +329,9 @@ export default function Certifications() {
     return () => {
       gsap.ticker.remove(updateLoop);
     };
-  }, [isReducedMotion, certificates.length, widthSet, applyPosition]);
+  }, [isReducedMotion, certificates.length]);
 
-  // Desktop Mouse Click & Drag handlers
+  // Desktop Mouse Drag handlers
   const handleMouseDown = (e) => {
     if (isReducedMotion) return;
     if (e.button !== undefined && e.button !== 0) return;
@@ -354,7 +354,7 @@ export default function Certifications() {
       if (!isDragging.current) return;
 
       const deltaX = e.clientX - pointerStartX.current;
-      if (Math.abs(deltaX) > 5) {
+      if (Math.abs(deltaX) > 6) {
         hasDragged.current = true;
       }
 
@@ -370,10 +370,14 @@ export default function Certifications() {
         containerRef.current.style.cursor = 'grab';
       }
 
+      setTimeout(() => {
+        hasDragged.current = false;
+      }, 100);
+
       if (resumeTimer.current) clearTimeout(resumeTimer.current);
       resumeTimer.current = setTimeout(() => {
         isAutoScrolling.current = true;
-      }, 1500);
+      }, 600);
     };
 
     window.addEventListener('mousemove', handleGlobalMouseMove);
@@ -383,14 +387,13 @@ export default function Certifications() {
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [widthSet, applyPosition]);
+  }, [applyPosition]);
 
-  // Mobile Touch Swipe & Trackpad / Mouse Wheel event handlers
+  // Mobile Touch Swipe & Trackpad / Mouse Wheel handlers
   useEffect(() => {
     const container = containerRef.current;
     if (!container || isReducedMotion) return;
 
-    // Mobile Touch handlers with horizontal consumption & vertical pass-through
     const handleTouchStart = (e) => {
       if (e.touches.length !== 1) return;
 
@@ -414,7 +417,7 @@ export default function Certifications() {
       const deltaY = touch.clientY - touchStartY.current;
 
       if (!touchDirection.current) {
-        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
           if (Math.abs(deltaX) >= Math.abs(deltaY)) {
             touchDirection.current = 'horizontal';
           } else {
@@ -425,7 +428,7 @@ export default function Certifications() {
 
       if (touchDirection.current === 'horizontal') {
         if (e.cancelable) e.preventDefault();
-        if (Math.abs(deltaX) > 5) {
+        if (Math.abs(deltaX) > 6) {
           hasDragged.current = true;
         }
         xPos.current = dragStartPos.current + deltaX;
@@ -438,17 +441,20 @@ export default function Certifications() {
       isDragging.current = false;
       touchDirection.current = null;
 
+      setTimeout(() => {
+        hasDragged.current = false;
+      }, 100);
+
       if (resumeTimer.current) clearTimeout(resumeTimer.current);
       resumeTimer.current = setTimeout(() => {
         isAutoScrolling.current = true;
-      }, 1500);
+      }, 600);
     };
 
-    // Trackpad horizontal swipe & Shift + mouse wheel
     const handleWheel = (e) => {
       const deltaX = e.deltaX !== 0 ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
 
-      if (Math.abs(deltaX) > Math.abs(e.deltaY) || e.shiftKey || e.deltaX !== 0) {
+      if ((Math.abs(deltaX) > Math.abs(e.deltaY) && Math.abs(deltaX) > 2) || (e.shiftKey && Math.abs(e.deltaY) > 2)) {
         if (e.cancelable) e.preventDefault();
 
         isAutoScrolling.current = false;
@@ -458,7 +464,7 @@ export default function Certifications() {
         if (resumeTimer.current) clearTimeout(resumeTimer.current);
         resumeTimer.current = setTimeout(() => {
           isAutoScrolling.current = true;
-        }, 1500);
+        }, 600);
       }
     };
 
@@ -475,44 +481,35 @@ export default function Certifications() {
       container.removeEventListener('touchcancel', handleTouchEnd);
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [isReducedMotion, widthSet, applyPosition]);
+  }, [isReducedMotion, applyPosition]);
 
-  // Hover pause & resume
+  // Hover & Focus handlers
   const handleMouseEnter = () => {
     if (isDragging.current) return;
     isHovered.current = true;
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
   };
 
   const handleMouseLeave = () => {
     isHovered.current = false;
-    if (!isDragging.current) {
-      if (resumeTimer.current) clearTimeout(resumeTimer.current);
-      resumeTimer.current = setTimeout(() => {
-        isAutoScrolling.current = true;
-      }, 1500);
-    }
   };
 
   const handleFocusCapture = () => {
     isAutoScrolling.current = false;
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
   };
 
   const handleBlurCapture = () => {
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
-    resumeTimer.current = setTimeout(() => {
-      isAutoScrolling.current = true;
-    }, 1500);
+    isAutoScrolling.current = true;
   };
 
   const handleOpenModal = (cert) => {
     lastTriggerRef.current = document.activeElement;
     setSelectedCert(cert);
+    isAutoScrolling.current = false;
   };
 
   const handleCloseModal = () => {
     setSelectedCert(null);
+    isAutoScrolling.current = true;
     setTimeout(() => {
       lastTriggerRef.current?.focus?.();
       lastTriggerRef.current = null;

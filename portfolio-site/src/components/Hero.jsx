@@ -35,21 +35,21 @@ function Chip({ chip }) {
       aria-hidden="true"
     >
       <div
-        className="px-3.5 py-2.5 rounded-xl border border-white/[0.1] text-xs transition-all duration-300"
+        className="px-2.5 py-1.5 xs:px-3 xs:py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-white/[0.1] text-xs transition-all duration-300"
         style={{
           background:  'rgba(13,27,53,0.92)',
           backdropFilter: 'blur(8px)',
           boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-          minWidth: '115px',
+          minWidth: '85px',
         }}
       >
-        <Icon size={14} className="text-accent mb-1.5" />
-        <div className="text-[15px] sm:text-[16px] font-bold text-white tracking-tight leading-tight mb-1.5">
+        <Icon size={12} className="text-accent mb-1 sm:mb-1.5 sm:w-[14px] sm:h-[14px]" />
+        <div className="text-[12px] xs:text-[13px] sm:text-[15px] lg:text-[16px] font-bold text-white tracking-tight leading-tight mb-0.5 sm:mb-1.5">
           {title}
         </div>
         <div className="flex flex-col gap-0.5">
           {items.map((tech, i) => (
-            <div key={i} className="text-[--muted] font-normal leading-snug text-[11.5px] sm:text-[12px]">
+            <div key={i} className="text-[--muted] font-normal leading-snug text-[9.5px] xs:text-[10.5px] sm:text-[11.5px] lg:text-[12px]">
               {tech}
             </div>
           ))}
@@ -73,15 +73,26 @@ export default function Hero() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const handleViewProjects = (e) => {
+    e.preventDefault();
+    const el = document.getElementById('projects');
+    if (!el) return;
+    if (window.__lenis) {
+      window.__lenis.scrollTo(el, { offset: -64, duration: 1.2 });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section
       id="hero"
-      className="relative min-h-[calc(100svh-4rem)] lg:min-h-screen flex flex-col justify-start lg:justify-center pt-16 overflow-hidden"
+      className="relative min-h-screen flex items-center pt-16 overflow-hidden"
       aria-label="Introduction"
     >
       {/* ── Subtle dot grid background ── */}
       <div
-        className="absolute inset-0 opacity-[0.022]"
+        className="absolute inset-0 opacity-[0.022] pointer-events-none"
         style={{
           backgroundImage:
             'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
@@ -100,13 +111,13 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-4 items-center pt-4 sm:pt-6 lg:pt-0 pb-8 sm:pb-12 lg:pb-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-8 lg:gap-4 items-center py-8 sm:py-12 lg:py-0">
         {/* ════ LEFT: text content ════ */}
         <motion.div
           variants={heroContainer}
           initial="hidden"
           animate="visible"
-          className="flex flex-col gap-4 sm:gap-6 max-w-xl"
+          className="relative z-10 flex flex-col gap-4 sm:gap-6 max-w-xl"
         >
           {/* Badge */}
           <motion.div variants={heroItem}>
@@ -140,44 +151,50 @@ export default function Hero() {
             {PORTFOLIO.heroDesc}
           </motion.p>
 
-          {/* CTAs (desktop only to maintain clean mobile hero structure) */}
-          <motion.div variants={heroItem} className="hidden lg:flex flex-wrap items-center gap-3 pt-1">
+          {/* CTAs */}
+          <motion.div
+            variants={heroItem}
+            className="relative z-20 flex flex-col xs:flex-row flex-wrap items-stretch xs:items-center gap-2.5 sm:gap-3 pt-1 w-full sm:w-auto"
+          >
             <a
               href="#projects"
-              className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent/90 hover:shadow-glow active:scale-[0.97] transition-all duration-200 text-sm"
+              onClick={handleViewProjects}
+              className="group inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent/90 hover:shadow-glow active:scale-[0.97] transition-all duration-200 text-xs sm:text-sm min-h-[44px] cursor-pointer touch-manipulation select-none text-center"
             >
               <span>View Projects</span>
               <ArrowRight
-                size={15}
+                size={14}
                 className="group-hover:translate-x-1 transition-transform duration-200"
               />
             </a>
 
-            {PORTFOLIO.social?.github && (
-              <a
-                href={PORTFOLIO.social.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-sm"
-                aria-label="GitHub profile"
-              >
-                <Github size={16} />
-                <span>GitHub</span>
-              </a>
-            )}
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-1 xs:flex-initial">
+              {PORTFOLIO.social?.github && (
+                <a
+                  href={PORTFOLIO.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-xs sm:text-sm min-h-[44px] cursor-pointer touch-manipulation select-none flex-1 xs:flex-initial text-center"
+                  aria-label="GitHub profile"
+                >
+                  <Github size={15} />
+                  <span>GitHub</span>
+                </a>
+              )}
 
-            {PORTFOLIO.resume && (
-              <a
-                href={PORTFOLIO.resume}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-sm"
-                aria-label="View Resume"
-              >
-                <FileText size={16} />
-                <span>Resume</span>
-              </a>
-            )}
+              {PORTFOLIO.resume && (
+                <a
+                  href={PORTFOLIO.resume}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-xs sm:text-sm min-h-[44px] cursor-pointer touch-manipulation select-none flex-1 xs:flex-initial text-center"
+                  aria-label="View Resume"
+                >
+                  <FileText size={15} />
+                  <span>Resume</span>
+                </a>
+              )}
+            </div>
           </motion.div>
         </motion.div>
 
@@ -186,7 +203,7 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.35, ease: ANIM.ease }}
-          className="relative flex items-center justify-center py-2 sm:py-4 lg:py-0 lg:h-[500px] w-full max-w-full overflow-hidden"
+          className="relative flex items-center justify-center h-[320px] xs:h-[360px] sm:h-[440px] lg:h-[500px] w-full max-w-[420px] lg:max-w-full mx-auto overflow-hidden my-2 sm:my-0"
           aria-hidden="true"
         >
           {/* Ambient Glow behind the device */}
@@ -201,13 +218,13 @@ export default function Hero() {
 
           {/* Outer ring decoration */}
           <div
-            className="absolute w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border border-white/[0.04] pointer-events-none"
+            className="absolute w-48 h-48 xs:w-56 xs:h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border border-white/[0.04] pointer-events-none"
             style={{ boxShadow: 'inset 0 0 40px rgba(67,97,238,0.08)' }}
           />
 
           {/* Central circular profile frame */}
           <div
-            className="relative z-10 w-36 h-36 xs:w-44 xs:h-44 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-full border-2 border-accent/40 flex items-center justify-center overflow-hidden p-1.5"
+            className="relative z-10 w-28 h-28 xs:w-36 xs:h-36 sm:w-48 sm:h-48 lg:w-64 lg:h-64 rounded-full border-2 border-accent/40 flex items-center justify-center overflow-hidden p-1.5"
             style={{
               background:
                 'linear-gradient(145deg, #0d1b35 0%, #0a1628 60%, #06101f 100%)',
@@ -222,8 +239,8 @@ export default function Hero() {
             />
           </div>
 
-          {/* Floating chips (cleanly displayed on desktop, hidden on mobile to avoid overlap) */}
-          <div className="hidden lg:contents">
+          {/* Floating chips (rendered responsively on both mobile and desktop) */}
+          <div className="contents">
             {PORTFOLIO.chips.map((chip, i) => (
               <Chip key={i} chip={chip} />
             ))}
@@ -231,10 +248,10 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* ── Scroll hint (desktop only) ── */}
+      {/* ── Scroll hint ── */}
       <div
         ref={scrollHintRef}
-        className="hidden lg:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-1 transition-opacity duration-500 pointer-events-none select-none"
+        className="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 flex-col items-center gap-1 transition-opacity duration-500 pointer-events-none select-none"
         style={{ color: 'var(--subtle)' }}
         aria-hidden="true"
       >
