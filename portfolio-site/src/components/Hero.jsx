@@ -76,7 +76,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-0 lg:min-h-screen flex flex-col justify-start lg:justify-center overflow-hidden"
+      className="relative min-h-[calc(100svh-4rem)] lg:min-h-screen flex flex-col justify-start lg:justify-center pt-16 overflow-hidden"
       aria-label="Introduction"
     >
       {/* ── Subtle dot grid background ── */}
@@ -100,13 +100,13 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-4 items-center pt-24 sm:pt-28 lg:pt-0 pb-12 sm:pb-16 lg:py-0">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 w-full grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-4 items-center pt-4 sm:pt-6 lg:pt-0 pb-8 sm:pb-12 lg:pb-0">
         {/* ════ LEFT: text content ════ */}
         <motion.div
           variants={heroContainer}
           initial="hidden"
           animate="visible"
-          className="flex flex-col gap-5 sm:gap-6 max-w-xl"
+          className="flex flex-col gap-4 sm:gap-6 max-w-xl"
         >
           {/* Badge */}
           <motion.div variants={heroItem}>
@@ -118,16 +118,16 @@ export default function Hero() {
 
           {/* Main heading (Name) & Professional title */}
           <motion.div variants={heroItem} className="flex flex-col">
-            <h1 className="text-[clamp(1.9rem,5.5vw,3.3rem)] font-bold leading-[1.15] tracking-tight break-words">
+            <h1 className="text-[clamp(1.85rem,5.5vw,3.3rem)] font-bold leading-[1.12] tracking-tight break-words">
               Hi, I'm{' '}
               <span
-                className="text-accent inline-block"
+                className="text-accent"
                 style={{ textShadow: '0 0 40px rgba(67,97,238,0.55)' }}
               >
                 Prakash Kumar
               </span>
             </h1>
-            <p className="text-[clamp(1.2rem,3.4vw,2.15rem)] font-bold leading-[1.25] tracking-tight text-white/95 mt-2 break-words">
+            <p className="text-[clamp(1.2rem,3.4vw,2.15rem)] font-bold leading-[1.25] tracking-tight text-white/95 mt-1.5 sm:mt-2 break-words">
               {PORTFOLIO.headline}
             </p>
           </motion.div>
@@ -140,15 +140,15 @@ export default function Hero() {
             {PORTFOLIO.heroDesc}
           </motion.p>
 
-          {/* CTAs */}
-          <motion.div variants={heroItem} className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1">
+          {/* CTAs (desktop only to maintain clean mobile hero structure) */}
+          <motion.div variants={heroItem} className="hidden lg:flex flex-wrap items-center gap-3 pt-1">
             <a
               href="#projects"
-              className="group inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent/90 hover:shadow-glow active:scale-[0.97] transition-all duration-200 text-xs sm:text-sm"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent/90 hover:shadow-glow active:scale-[0.97] transition-all duration-200 text-sm"
             >
               <span>View Projects</span>
               <ArrowRight
-                size={14}
+                size={15}
                 className="group-hover:translate-x-1 transition-transform duration-200"
               />
             </a>
@@ -158,10 +158,10 @@ export default function Hero() {
                 href={PORTFOLIO.social.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-xs sm:text-sm"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-sm"
                 aria-label="GitHub profile"
               >
-                <Github size={15} />
+                <Github size={16} />
                 <span>GitHub</span>
               </a>
             )}
@@ -171,10 +171,10 @@ export default function Hero() {
                 href={PORTFOLIO.resume}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-xs sm:text-sm"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/[0.14] text-[--text] font-semibold rounded-xl hover:border-accent hover:text-accent hover:bg-white/[0.04] active:scale-[0.97] transition-all duration-200 text-sm"
                 aria-label="View Resume"
               >
-                <FileText size={15} />
+                <FileText size={16} />
                 <span>Resume</span>
               </a>
             )}
@@ -186,12 +186,12 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.35, ease: ANIM.ease }}
-          className="relative flex items-center justify-center py-4 sm:py-6 lg:py-0 lg:h-[500px] w-full max-w-full overflow-hidden"
+          className="relative flex items-center justify-center py-2 sm:py-4 lg:py-0 lg:h-[500px] w-full max-w-full overflow-hidden"
           aria-hidden="true"
         >
           {/* Ambient Glow behind the device */}
           <div
-            className="absolute w-48 h-48 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full pointer-events-none"
+            className="absolute w-44 h-44 xs:w-52 xs:h-52 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full pointer-events-none"
             style={{
               background:
                 'radial-gradient(circle, rgba(67,97,238,0.45) 0%, transparent 68%)',
@@ -201,13 +201,13 @@ export default function Hero() {
 
           {/* Outer ring decoration */}
           <div
-            className="absolute w-60 h-60 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border border-white/[0.04] pointer-events-none"
+            className="absolute w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full border border-white/[0.04] pointer-events-none"
             style={{ boxShadow: 'inset 0 0 40px rgba(67,97,238,0.08)' }}
           />
 
           {/* Central circular profile frame */}
           <div
-            className="relative z-10 w-36 h-36 sm:w-48 sm:h-48 lg:w-64 lg:h-64 rounded-full border-2 border-accent/40 flex items-center justify-center overflow-hidden p-1.5"
+            className="relative z-10 w-36 h-36 xs:w-44 xs:h-44 sm:w-52 sm:h-52 lg:w-64 lg:h-64 rounded-full border-2 border-accent/40 flex items-center justify-center overflow-hidden p-1.5"
             style={{
               background:
                 'linear-gradient(145deg, #0d1b35 0%, #0a1628 60%, #06101f 100%)',

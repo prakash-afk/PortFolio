@@ -131,11 +131,13 @@ function ProjectModal({
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
     document.body.classList.add('modal-open');
+    window.__lenis?.stop();
 
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
       document.body.classList.remove('modal-open');
+      window.__lenis?.start();
     };
   }, []);
 
@@ -236,7 +238,7 @@ function ProjectModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-project-title"
-      className="fixed inset-0 z-[9999] flex items-end lg:items-center justify-center p-0 lg:p-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 lg:p-6 overflow-hidden overscroll-none"
     >
       {/* ── Fixed Overlay covering Navbar and entire screen ── */}
       <motion.div
@@ -246,10 +248,11 @@ function ProjectModal({
         exit={{ opacity: 0 }}
         transition={{ duration: isReducedMotion ? 0.01 : 0.25 }}
         onClick={onClose}
+        onTouchMove={(e) => e.preventDefault()}
         aria-hidden="true"
       />
 
-      {/* ── Modal Card / Sheet ── */}
+      {/* ── Modal Card ── */}
       <motion.div
         ref={panelRef}
         tabIndex={-1}
@@ -274,10 +277,8 @@ function ProjectModal({
         }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        className="relative z-10 w-full lg:max-w-[980px] max-h-[92dvh] lg:max-h-[min(88dvh,780px)] rounded-t-[22px] lg:rounded-[18px] border-t lg:border border-white/[0.12] bg-[var(--card)] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_40px_rgba(67,97,238,0.2)] overflow-hidden flex flex-col outline-none"
+        className="relative z-10 w-full lg:max-w-[980px] max-h-[90dvh] lg:max-h-[min(88dvh,780px)] rounded-[18px] border border-white/[0.12] bg-[var(--card)] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_40px_rgba(67,97,238,0.2)] overflow-hidden flex flex-col outline-none"
       >
-        {/* Mobile top pull indicator */}
-        <div className="w-12 h-1.5 rounded-full bg-white/20 mx-auto mt-2.5 mb-1 lg:hidden flex-shrink-0" />
 
         {/* ── Desktop & Mobile Header Bar (Always Visible) ── */}
         <div className="flex items-center justify-between px-5 lg:px-6 py-2.5 lg:py-3 border-b border-white/[0.08] flex-shrink-0 bg-[var(--card)]">

@@ -111,6 +111,11 @@ body.modal-open .back-to-top {
   transform: scale(0.8) !important;
 }
 
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
 /* ══════════════════════════════════════
    SECTION LABEL
 ══════════════════════════════════════ */
