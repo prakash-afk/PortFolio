@@ -105,9 +105,12 @@ export default function Contact() {
     setStatus('sending');
     try {
       await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+        name:       form.name.trim(),
+        email:      form.email.trim(),
+        message:    form.message.trim(),
         from_name:  form.name.trim(),
         from_email: form.email.trim(),
-        message:    form.message.trim(),
+        reply_to:   form.email.trim(),
       });
       setStatus('success');
       setForm({ name: '', email: '', message: '' });
