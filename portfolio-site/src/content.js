@@ -239,7 +239,7 @@ export const PORTFOLIO = {
   // ── Contact ───────────────────────────────────────────
   contact: {
     heading: "Let's Connect",
-    desc:    "I'm open to AI/ML internships, engineering opportunities, and discussions about GenAI, RAG, and backend systems. Feel free to reach out.",
+    desc:    "I'm open to AI/ML internships and engineering opportunities where I can build intelligent systems that solve real-world problems and scale.",
     email:   'pr1624300@gmail.com',
   },
 };
