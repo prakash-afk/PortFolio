@@ -1,8 +1,7 @@
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { Target, Lightbulb, Focus, BookOpen, ArrowRight } from 'lucide-react';
 import { PORTFOLIO } from '../content';
-import { ANIM } from '../utils/animations';
 
 const ICON_MAP = {
   target:    Target,
@@ -12,24 +11,41 @@ const ICON_MAP = {
 };
 
 export default function About() {
-  const ref    = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-100px' });
+  const sectionRef = useRef(null);
+  const inView = useInView(sectionRef, { once: true, amount: 0.25 });
+  const shouldReduceMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const { about } = PORTFOLIO;
+  const offsetX = isMobile ? 40 : 80;
 
   return (
     <section
       id="about"
-      className="py-24 sm:py-32"
+      ref={sectionRef}
+      className="py-24 sm:py-32 overflow-hidden"
       style={{ background: 'var(--surface)' }}
     >
-      <div ref={ref} className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-[1fr_1fr] gap-12 lg:gap-16 items-center">
 
           {/* ── Left: text ── */}
           <motion.div
-            initial={{ opacity: 0, y: ANIM.revealY }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: ANIM.duration.slow, ease: ANIM.ease }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -offsetX }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{
+              duration: shouldReduceMotion ? 0.3 : 0.95,
+              ease: [0.22, 1, 0.36, 1],
+            }}
           >
             <span className="section-label">{about.sectionLabel}</span>
             <h2 className="text-[clamp(1.8rem,4vw,2.5rem)] font-bold leading-tight tracking-tight mb-5">
@@ -51,22 +67,25 @@ export default function About() {
           </motion.div>
 
           {/* ── Right: 2×2 info cards ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-            {about.cards.map((card, i) => {
+          <motion.div
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: offsetX }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{
+              duration: shouldReduceMotion ? 0.3 : 0.95,
+              delay: shouldReduceMotion ? 0 : 0.08,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
+          >
+            {about.cards.map((card) => {
               const Icon = ICON_MAP[card.icon] || Target;
               return (
-                <motion.div
+                <div
                   key={card.title}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{
-                    duration: ANIM.duration.normal,
-                    delay: 0.12 + i * ANIM.stagger,
-                    ease: ANIM.ease,
-                  }}
                   className="card-glow group p-4 sm:p-5"
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-colors duration-200 group-hover:bg-accent/20"
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center mb-3 transition-colors duration-200 group-hover:bg-accent/20"
                     style={{ background: 'var(--accent-dim)' }}
                   >
                     <Icon size={16} className="text-accent" />
@@ -75,10 +94,10 @@ export default function About() {
                     {card.title}
                   </h3>
                   <p className="text-[--muted] text-xs leading-relaxed">{card.desc}</p>
-                </motion.div>
+                </div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

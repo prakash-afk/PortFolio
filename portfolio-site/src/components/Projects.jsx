@@ -5,8 +5,9 @@ import { ExternalLink, Github, X, ChevronLeft, ChevronRight, Maximize2, ArrowRig
 import { PORTFOLIO } from '../content';
 
 // ─── Project Card Component ─────────────────────────────────
-function ProjectCard({ project, idx, inView, onOpen, isReducedMotion }) {
+function ProjectCard({ project, idx, inView, onOpen, isReducedMotion, deviceType }) {
   const cardRef = useRef(null);
+  const imgRef = useRef(null);
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const title = project.name || project.title;
@@ -14,8 +15,62 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion }) {
   const tags = project.tags || project.tech || [];
   const thumbnail = project.thumbnail || '/images/healthcare-rag.png';
 
-  // Stagger delays: Card 1: 0ms, Card 2: 100ms, Card 3: 200ms, Card 4: 300ms
-  const revealDelay = isReducedMotion ? 0 : idx * 0.1;
+  // Stagger sequence:
+  // Card 0 (Row 1 Left): 0.35s
+  // Card 1 (Row 1 Right): 0.45s (~100ms after left)
+  // Card 2 (Row 2 Left): 0.58s (~130ms after Row 1)
+  // Card 3 (Row 2 Right): 0.70s (~120ms after card 2)
+  const cardDelay = useMemo(() => {
+    if (isReducedMotion) return 0;
+    switch (idx) {
+      case 0:
+        return 0.35;
+      case 1:
+        return 0.45;
+      case 2:
+        return 0.58;
+      case 3:
+        return 0.70;
+      default:
+        return 0.35 + idx * 0.12;
+    }
+  }, [idx, isReducedMotion]);
+
+  // Directional initial position & depth:
+  // Row 1: Left card from -X toward center, Right card from +X toward center
+  // Row 2: Cards from +Y (60px) upward
+  const cardInitial = useMemo(() => {
+    if (isReducedMotion) return { opacity: 0 };
+    if (idx === 0) {
+      const xVal = deviceType === 'desktop' ? -70 : deviceType === 'tablet' ? -45 : 0;
+      const yVal = deviceType === 'mobile' ? 35 : 25;
+      return {
+        opacity: 0,
+        x: xVal,
+        y: yVal,
+        scale: 0.97,
+        filter: 'blur(2px)',
+      };
+    }
+    if (idx === 1) {
+      const xVal = deviceType === 'desktop' ? 70 : deviceType === 'tablet' ? 45 : 0;
+      const yVal = deviceType === 'mobile' ? 35 : 25;
+      return {
+        opacity: 0,
+        x: xVal,
+        y: yVal,
+        scale: 0.97,
+        filter: 'blur(2px)',
+      };
+    }
+    return {
+      opacity: 0,
+      x: 0,
+      y: 60,
+      scale: 0.97,
+      filter: 'blur(2px)',
+    };
+  }, [idx, deviceType, isReducedMotion]);
 
   return (
     <motion.article
@@ -29,12 +84,31 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion }) {
           onOpen(idx, cardRef.current);
         }
       }}
-      initial={isReducedMotion ? { opacity: 0 } : { opacity: 0, y: 26 }}
-      animate={inView ? (isReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }) : {}}
+      initial={cardInitial}
+      animate={
+        inView
+          ? isReducedMotion
+            ? { opacity: 1 }
+            : {
+                opacity: 1,
+                x: 0,
+                y: 0,
+                scale: 1,
+                filter: 'blur(0px)',
+              }
+          : {}
+      }
       transition={{
-        duration: isReducedMotion ? 0.01 : 0.6,
-        delay: revealDelay,
+        duration: isReducedMotion ? 0.01 : 0.8,
+        delay: cardDelay,
         ease: [0.22, 1, 0.36, 1],
+      }}
+      onAnimationComplete={() => {
+        // Clear inline transforms & filters once settled so CSS hover operates cleanly
+        if (cardRef.current) {
+          cardRef.current.style.transform = '';
+          cardRef.current.style.filter = '';
+        }
       }}
       className="group relative flex flex-col w-full h-full text-left rounded-2xl border border-white/[0.08] overflow-hidden cursor-pointer outline-none transition-all duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:border-accent/40 hover:shadow-[0_14px_32px_-10px_rgba(0,0,0,0.7),0_0_24px_rgba(67,97,238,0.22)] focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
       style={{
@@ -44,15 +118,28 @@ function ProjectCard({ project, idx, inView, onOpen, isReducedMotion }) {
       aria-haspopup="dialog"
       aria-label={`View details for ${title}`}
     >
-      {/* Thumbnail with lazy load and subtle hover zoom */}
+      {/* Thumbnail with subtle entrance reveal and hover zoom */}
       <div className="relative w-full h-[210px] sm:h-[230px] overflow-hidden bg-[#070b14] border-b border-white/[0.06]">
-        <img
+        <motion.img
+          ref={imgRef}
           src={thumbnail}
           alt={`${title} preview graphic`}
           loading="lazy"
           width={600}
           height={375}
           onLoad={() => setImgLoaded(true)}
+          initial={isReducedMotion ? {} : { scale: 1.04 }}
+          animate={inView ? (isReducedMotion ? {} : { scale: 1 }) : {}}
+          transition={{
+            duration: isReducedMotion ? 0.01 : 0.85,
+            delay: cardDelay + 0.04,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          onAnimationComplete={() => {
+            if (imgRef.current) {
+              imgRef.current.style.transform = '';
+            }
+          }}
           className={`w-full h-full object-cover object-top origin-top transition-transform duration-450 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] ${
             imgLoaded ? 'opacity-100' : 'opacity-0'
           }`}
@@ -509,7 +596,25 @@ export default function Projects() {
   const lastTriggerRef = useRef(null);
 
   const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: '-60px' });
+  const inView = useInView(sectionRef, { once: true, amount: 0.22 });
+
+  // Responsive device type detection
+  const [deviceType, setDeviceType] = useState('desktop');
+  useEffect(() => {
+    const updateDevice = () => {
+      const w = window.innerWidth;
+      if (w < 768) {
+        setDeviceType('mobile');
+      } else if (w < 1024) {
+        setDeviceType('tablet');
+      } else {
+        setDeviceType('desktop');
+      }
+    };
+    updateDevice();
+    window.addEventListener('resize', updateDevice, { passive: true });
+    return () => window.removeEventListener('resize', updateDevice);
+  }, []);
 
   // Detect prefers-reduced-motion
   const [isReducedMotion, setIsReducedMotion] = useState(false);
@@ -539,30 +644,61 @@ export default function Projects() {
   };
 
   return (
-    <section id="projects" className="py-24 sm:py-32" style={{ background: 'var(--surface)' }}>
-      <div ref={sectionRef} className="max-w-6xl mx-auto px-4 sm:px-6">
+    <section id="projects" ref={sectionRef} className="py-24 sm:py-32" style={{ background: 'var(--surface)' }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 sm:mb-12"
-        >
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 sm:mb-12">
           <div>
-            <span className="section-label">PROJECTS</span>
-            <h2 className="text-[clamp(1.8rem,4vw,2.5rem)] font-bold tracking-tight text-[--text]">
+            <motion.span
+              initial={isReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                duration: isReducedMotion ? 0.01 : 0.75,
+                delay: isReducedMotion ? 0 : 0.04,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="section-label"
+            >
+              PROJECTS
+            </motion.span>
+            <motion.h2
+              initial={isReducedMotion ? { opacity: 0 } : { opacity: 0, y: 25 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                duration: isReducedMotion ? 0.01 : 0.8,
+                delay: isReducedMotion ? 0 : 0.08,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="text-[clamp(1.8rem,4vw,2.5rem)] font-bold tracking-tight text-[--text]"
+            >
               Featured Projects
-            </h2>
-            <p className="text-[--muted] text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
+            </motion.h2>
+            <motion.p
+              initial={isReducedMotion ? { opacity: 0 } : { opacity: 0, y: 25 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                duration: isReducedMotion ? 0.01 : 0.8,
+                delay: isReducedMotion ? 0 : 0.18,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="text-[--muted] text-sm sm:text-base mt-2 max-w-xl leading-relaxed"
+            >
               Selected AI/ML, GenAI, and backend systems I've built.
-            </p>
+            </motion.p>
           </div>
 
           {PORTFOLIO.social?.github && (
-            <a
+            <motion.a
               href={PORTFOLIO.social.github}
               target="_blank"
               rel="noopener noreferrer"
+              initial={isReducedMotion ? { opacity: 0 } : { opacity: 0, y: 25 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{
+                duration: isReducedMotion ? 0.01 : 0.8,
+                delay: isReducedMotion ? 0 : 0.26,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.1] bg-white/[0.03] hover:bg-white/[0.06] hover:border-accent/40 text-accent text-sm font-semibold transition-all duration-200 self-start sm:self-auto flex-shrink-0"
               aria-label="View all projects on GitHub"
             >
@@ -571,9 +707,9 @@ export default function Projects() {
                 size={14}
                 className="transition-transform duration-200 group-hover:translate-x-1"
               />
-            </a>
+            </motion.a>
           )}
-        </motion.div>
+        </div>
 
         {/* 2×2 Projects Grid (1 column on mobile, 2 columns on tablet & desktop) */}
         <div
@@ -588,6 +724,7 @@ export default function Projects() {
               inView={inView}
               onOpen={handleOpenModal}
               isReducedMotion={isReducedMotion}
+              deviceType={deviceType}
             />
           ))}
         </div>
