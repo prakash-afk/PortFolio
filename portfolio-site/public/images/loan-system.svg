@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#091e1d" />
+      <stop offset="100%" stop-color="#020d0c" />
+    </linearGradient>
+    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(16,185,129,0.3)" />
+      <stop offset="100%" stop-color="rgba(16,185,129,0)" />
+    </linearGradient>
+    <pattern id="grid2" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="360" fill="url(#bg2)" />
+  <rect width="600" height="360" fill="url(#grid2)" />
+  
+  <circle cx="300" cy="180" r="130" fill="#10b981" opacity="0.12" filter="blur(40px)" />
+
+  <g transform="translate(160, 80)">
+    <!-- Dashboard Card -->
+    <rect x="0" y="0" width="280" height="190" rx="14" fill="#0f2926" stroke="rgba(16,185,129,0.3)" stroke-width="1.5" />
+    
+    <!-- Header bar -->
+    <circle cx="24" cy="24" r="5" fill="#10b981" />
+    <text x="42" y="28" fill="#10b981" font-family="system-ui, sans-serif" font-size="11" font-weight="700" letter-spacing="1">XGBOOST CLASSIFIER · 92.6%</text>
+    
+    <!-- ROC Chart Area -->
+    <path d="M 25 145 C 50 140, 80 80, 130 65 C 180 50, 210 40, 255 35 L 255 155 L 25 155 Z" fill="url(#chartGrad)" />
+    <path d="M 25 145 C 50 140, 80 80, 130 65 C 180 50, 210 40, 255 35" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="25" y1="155" x2="255" y2="155" stroke="rgba(255,255,255,0.15)" stroke-width="1" />
+    
+    <!-- Metric Pill -->
+    <rect x="180" y="70" width="75" height="26" rx="6" fill="#091e1d" stroke="#10b981" stroke-width="1" />
+    <text x="217" y="87" fill="#6ee7b7" font-family="system-ui, sans-serif" font-size="11" font-weight="700" text-anchor="middle">AUC 0.984</text>
+  </g>
+</svg>
