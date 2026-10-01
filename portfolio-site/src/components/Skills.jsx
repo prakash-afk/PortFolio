@@ -38,11 +38,12 @@ function SkillChip({ skill }) {
 function MarqueeRow({ skills, speed, reducedMotion }) {
   const rowRef   = useRef(null);
   const tweenRef = useRef(null);
+  const repeatCount = 6;
 
   useEffect(() => {
     if (reducedMotion || !rowRef.current) return;
     tweenRef.current = gsap.to(rowRef.current, {
-      xPercent: -50,
+      xPercent: -100 / repeatCount,
       duration: speed,
       ease:     'none',
       repeat:   -1,
@@ -62,7 +63,7 @@ function MarqueeRow({ skills, speed, reducedMotion }) {
     );
   }
 
-  const doubled = [...skills, ...skills];
+  const repeated = Array(repeatCount).fill(skills).flat();
 
   return (
     <div
@@ -78,7 +79,7 @@ function MarqueeRow({ skills, speed, reducedMotion }) {
         style={{ width: 'max-content' }}
         aria-hidden="true"
       >
-        {doubled.map((s, i) => <SkillChip key={i} skill={s} />)}
+        {repeated.map((s, i) => <SkillChip key={i} skill={s} />)}
       </div>
     </div>
   );
