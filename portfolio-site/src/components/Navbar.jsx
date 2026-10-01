@@ -1,29 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
 import { PORTFOLIO } from '../content';
-import { sound } from '../utils/sound';
 
 const NAV_LINKS = ['About', 'Projects', 'Skills', 'Education', 'Contact'];
 
 export default function Navbar() {
   const [scrolled,       setScrolled]       = useState(false);
   const [activeSection,  setActiveSection]  = useState('');
-  const [isMuted,        setIsMuted]        = useState(sound.isMuted);
-
-  // Sound state listener
-  useEffect(() => {
-    const handleSoundChange = (e) => {
-      setIsMuted(e.detail.isMuted);
-    };
-    window.addEventListener('sound-state-change', handleSoundChange);
-    return () => window.removeEventListener('sound-state-change', handleSoundChange);
-  }, []);
-
-  const toggleSound = () => {
-    const unmuted = sound.toggle();
-    setIsMuted(!unmuted);
-  };
 
   // Scroll progress bar
   const { scrollYProgress } = useScroll();
@@ -165,21 +148,6 @@ export default function Navbar() {
               />
             </a>
           )}
-
-          {/* Sound FX Toggle (Muted by default) */}
-          <button
-            type="button"
-            onClick={toggleSound}
-            title={isMuted ? 'Sound effects: Off (click to unmute)' : 'Sound effects: On (click to mute)'}
-            aria-label={isMuted ? 'Enable sound effects' : 'Disable sound effects'}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[--muted] hover:text-white hover:bg-white/[0.08] transition-colors ml-0.5 border border-white/[0.1] bg-white/[0.03]"
-          >
-            {isMuted ? (
-              <VolumeX size={14} className="opacity-60" />
-            ) : (
-              <Volume2 size={14} className="text-accent" />
-            )}
-          </button>
         </div>
       </nav>
     </header>

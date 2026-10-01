@@ -6,11 +6,6 @@
 class SoundManager {
   constructor() {
     this.ctx = null;
-    this.isMuted = true;
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sound_enabled');
-      this.isMuted = saved !== 'true'; // Muted by default per user request
-    }
   }
 
   init() {
@@ -25,21 +20,7 @@ class SoundManager {
     }
   }
 
-  toggle() {
-    this.init();
-    this.isMuted = !this.isMuted;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sound_enabled', (!this.isMuted).toString());
-      window.dispatchEvent(new CustomEvent('sound-state-change', { detail: { isMuted: this.isMuted } }));
-    }
-    if (!this.isMuted) {
-      this.playPop(650, 0.05);
-    }
-    return !this.isMuted;
-  }
-
   playPop(freq = 680, duration = 0.045) {
-    if (this.isMuted) return;
     try {
       this.init();
       if (!this.ctx) return;
@@ -63,7 +44,6 @@ class SoundManager {
   }
 
   playModalOpen() {
-    if (this.isMuted) return;
     try {
       this.init();
       if (!this.ctx) return;
@@ -87,7 +67,6 @@ class SoundManager {
   }
 
   playModalClose() {
-    if (this.isMuted) return;
     try {
       this.init();
       if (!this.ctx) return;
